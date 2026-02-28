@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <button id="sign-out">Sign Out</button>
+
+    <div id="result"></div>
+    <div>Chat Room</div>
+    <input type="text" id="sendMsg" />
+    <button id="send-btn">Send</button>
+    <div id="mesa"></div>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+      import {
+        GoogleAuthProvider,
+        getAuth,
+        onAuthStateChanged,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+      import {
+        getDatabase,
+        ref,
+        set,
+        onValue,
+      } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyAS-d_3VUTsW2A7yEIVW0ETqY1um3fPPz0",
+        authDomain: "febfire-700ba.firebaseapp.com",
+        projectId: "febfire-700ba",
+        databaseURL: "https://febfire-700ba-default-rtdb.firebaseio.com",
+        storageBucket: "febfire-700ba.firebasestorage.app",
+        messagingSenderId: "17245351215",
+        appId: "1:17245351215:web:a0107d6dcddb677ce2c5da",
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const provider = new GoogleAuthProvider();
+      const auth = getAuth();
+      const database = getDatabase();
+      let chatIndex = 0;
+
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          const uid = user.uid;
+          console.log("user is logged in:", user);
+
+          result.innerHTML = `<div>
+                    <img src = "${user.photoURL}" width:100px; height:100px; border-radius:50%; ><br/><br/>
+                    <h3>${user.email}</h3>
+                    <h3>${user.displayName}</h3>
+
+                    </div>`;
+        } else {
+          window.location.href = "/login.html";
+        }
+      });
+
+      document.getElementById("sign-out").addEventListener("click", () => {
+        signOut(auth)
+          .then(() => {
+            let person = new User();
+            person.logoutUser();
+            window.location.href = "/login.html";
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      });
+
+      document.getElementById("send-btn").addEventListener("click", () => {
+        const db = getDatabase();
+
+        const refDB = ref(db, "chats/" + chatIndex);
+
+        let currentUser = localStorage.getItem("user");
+        let convUser = JSON.parse(currentUser);
+
+        let messageObject = {
+          message: sendMsg.value,
+          email: convUser.email,
+          profilePicture: convUser.profilePicture,
+          id: convUser.id,
+        };
+
+        set(refDB, messageObject);
+      });
+
+      const refDB = ref(database, "chats/");
+      onValue(refDB, (snapshot) => {
+        const data = snapshot.val();
+        console.log(data);
+        if (data === null) {
+          console.log("no chats yet");
+        } else {
+          chatIndex = data.length;
+          let userId = localStorage.getItem("user");
+          let convUser = JSON.parse(userId);
+          mesa.innerHTML = "";
+          data.map((chat, index) => {
+            // mesa.innerHTML += `<code>${chat.message}</code><br/>`;
+
+            if (chat.id == convUser.id) {
+              mesa.innerHTML += `<code style="color:blue; display:flex; justify-content:right; align-items: right; border: 1px solid blue; width:100px height: 40px">${chat.message}</code><br/>`;
+            } else {
+              mesa.innerHTML += `<code style="color:red; display:flex; justify-content:left; border: 1px solid red;">${chat.message}</code><br/>`;
+            }
+          });
+        }
+      });
+    </script>
+    
+</body>
+</html>
