@@ -9,4 +9,6 @@
 // users should see when other users are typing
 // users should see when other users are online/offline
 
-// landing page(something simple )  
+// landing page(something simple ) 
+// have modal say sign in succesful if successful
+// have another say are you sure you want to delete your account if they click delete account 

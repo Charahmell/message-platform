@@ -1,119 +1,301 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-    <button id="sign-out">Sign Out</button>
 
-    <div id="result"></div>
-    <div>Chat Room</div>
-    <input type="text" id="sendMsg" />
-    <button id="send-btn">Send</button>
-    <div id="mesa"></div>
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-      import {
-        GoogleAuthProvider,
-        getAuth,
-        onAuthStateChanged,
-        signOut,
-      } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-      import {
-        getDatabase,
-        ref,
-        set,
-        onValue,
-      } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+<body id="blink">
+  <div class="chat-body">
+    <div class="chat-head">
+      <h1 class="title">Chat Room</h1>
+      <span id="online-count">0 online</span>
+      <div class="right">
+        <!-- <div id="profile"> -->
+        <img src="" alt="" id="photourl">
+        <!-- </div> -->
+        <button class="desktop-signout" id="sign-out">Sign Out</button>
+      </div>
+    </div>
+    <hr>
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyAS-d_3VUTsW2A7yEIVW0ETqY1um3fPPz0",
-        authDomain: "febfire-700ba.firebaseapp.com",
-        projectId: "febfire-700ba",
-        databaseURL: "https://febfire-700ba-default-rtdb.firebaseio.com",
-        storageBucket: "febfire-700ba.firebasestorage.app",
-        messagingSenderId: "17245351215",
-        appId: "1:17245351215:web:a0107d6dcddb677ce2c5da",
+    <div class="chat-messages">
+      <div id="mesa"></div>
+      <div id="typing-indicator"></div>
+    </div>
+    <div class="send-section">
+      <input type="text" id="sendMsg" />
+      <button id="send-btn">Send</button>
+    </div>
+    <div id="profile-modal-overlay">
+      <div id="profile-modal">
+        <button id="modal-close">✕</button>
+        <img src="" alt="" id="modal-photo">
+        <p id="modal-displayname"></p>
+        <p id="modal-email"></p>
+        <input type="text" id="modal-username-input" placeholder="Change display name..." />
+        <button id="save-username-btn">Save Username</button>
+        <hr>
+        <button class="mobile-signout">Sign Out</button>
+        <button id="delete-acc-btn">Delete Account</button>
+      </div>
+    </div>
+  </div>
+  <script type="module">
+    // import user from "./user.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import {
+      GoogleAuthProvider,
+      getAuth,
+      onAuthStateChanged,
+      updateProfile,
+      signOut,
+    } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import {
+      getDatabase,
+      ref,
+      set,
+      onDisconnect,
+      onValue,
+    } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAS-d_3VUTsW2A7yEIVW0ETqY1um3fPPz0",
+      authDomain: "febfire-700ba.firebaseapp.com",
+      projectId: "febfire-700ba",
+      databaseURL: "https://febfire-700ba-default-rtdb.firebaseio.com",
+      storageBucket: "febfire-700ba.firebasestorage.app",
+      messagingSenderId: "17245351215",
+      appId: "1:17245351215:web:a0107d6dcddb677ce2c5da",
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const provider = new GoogleAuthProvider();
+    const auth = getAuth();
+    const database = getDatabase();
+    let chatIndex = 0;
+    let data = [];
+    let typingTimeout;
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const uid = user.uid;
+        document.getElementById("photourl").src = user.photoURL || "";
+        document.getElementById("modal-photo").src = user.photoURL || "";
+        document.getElementById("modal-displayname").textContent = user.displayName || "No name";
+        document.getElementById("modal-email").textContent = user.email;
+        document.getElementById("modal-username-input").placeholder = user.displayName || "Change display name...";
+
+        console.log("user is logged in:", user);
+        const presenceRef = ref(database, "presence/" + user.uid);
+        onValue(ref(database, ".info/connected"), (snapshot) => {
+          if (snapshot.val() === true) {
+            set(presenceRef, { name: user.displayName || user.email, online: true });
+            onDisconnect(presenceRef).remove();
+          }
+        });
+
+      } else {
+        window.location.href = "/login.html";
+      }
+    });
+    onValue(ref(database, "presence/"), (snapshot) => {
+      const presenceData = snapshot.val();
+      const count = presenceData ? Object.keys(presenceData).length : 0;
+      document.getElementById("online-count").textContent = count + " online";
+    });
+
+    document.getElementById("photourl").addEventListener("click", () => {
+      document.getElementById("profile-modal-overlay").classList.add("open");
+    });
+    document.getElementById("modal-close").addEventListener("click", () => {
+      document.getElementById("profile-modal-overlay").classList.remove("open");
+    });
+    document.getElementById("profile-modal-overlay").addEventListener("click", (e) => {
+      if (e.target.id === "profile-modal-overlay") document.getElementById("profile-modal-overlay").classList.remove("open");
+    });
+    document.getElementById("save-username-btn").addEventListener("click", () => {
+      const newName = document.getElementById("modal-username-input").value.trim();
+      if (!newName) return;
+      updateProfile(auth.currentUser, { displayName: newName }).then(() => {
+        document.getElementById("modal-displayname").textContent = newName;
+        document.getElementById("modal-username-input").placeholder = newName;
+        document.getElementById("modal-username-input").value = "";
+        // alert("Username updated!");
+      }).catch((err) => console.log(err));
+    });
+
+    onValue(ref(database, "typing/"), (snapshot) => {
+      const typingData = snapshot.val();
+      const currentUser = JSON.parse(localStorage.getItem("user"));
+      if (!typingData || !currentUser) { document.getElementById("typing-indicator").textContent = ""; return; }
+      const othersTyping = Object.entries(typingData).filter(([id]) => id != currentUser.id).map(([id, val]) => val.name);
+      if (othersTyping.length === 0) document.getElementById("typing-indicator").textContent = "";
+      else if (othersTyping.length === 1) document.getElementById("typing-indicator").textContent = othersTyping[0] + " is typing...";
+      else document.getElementById("typing-indicator").textContent = "Several people are typing...";
+    });
+
+    document.getElementById("sign-out").addEventListener("click", () => {
+      signOut(auth)
+        .then(() => {
+          localStorage.removeItem("user"); // ✅ replaces new user().logoutUser()
+          window.location.href = "/login.html";
+          //   let person = new user();
+          //   person.logoutUser();
+          //   window.location.href = "/login.html";
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    });
+    document.getElementById("delete-acc-btn").addEventListener("click", () => {
+      const FUser = auth.currentUser;
+      if (!confirm("Are you sure you want to delete your account and all messages?")) return;
+      // wipe their messages from Firebase
+      if (data) {
+        data.forEach((chat, index) => {
+          if (chat && chat.id == FUser.uid) set(ref(database, "chats/" + index), null);
+        });
+      }
+      set(ref(database, "presence/" + FUser.uid), null);
+      localStorage.clear();
+      // let person = new user();
+      // delete Firebase Auth account
+      FUser.delete()
+        .then(() => { window.location.href = "/login.html"; })
+        .catch((error) => {
+          console.log(error);
+        });
+    });
+    document.getElementById("send-btn").addEventListener("click", () => {
+      if (!sendMsg.value.trim()) return;
+      const db = getDatabase();
+      const refDB = ref(db, "chats/" + chatIndex);
+
+      let currentUser = localStorage.getItem("user");
+      let convUser = JSON.parse(currentUser);
+      console.log(convUser);
+      let messageObject = {
+        message: sendMsg.value,
+        email: convUser.email,
+        profilePicture: convUser.profilePicture,
+        id: convUser.id,
+        name: convUser.name,
       };
 
-      // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
-      const provider = new GoogleAuthProvider();
-      const auth = getAuth();
-      const database = getDatabase();
-      let chatIndex = 0;
+      set(refDB, messageObject);
+      sendMsg.value = "";
+    });
+    document.getElementById("sendMsg").addEventListener("input", () => {
+      const currentUser = JSON.parse(localStorage.getItem("user"));
+      const typingRef = ref(database, "typing/" + currentUser.id);
+      set(typingRef, { name: currentUser.displayName || currentUser.email, typing: true });
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => { set(typingRef, null); }, 5000);
+    });
+    // this will delete message
+    const deleteMessage = (index) => {
+      const db = getDatabase();
+      const refDB = ref(database, "chats/" + index);
+      set(refDB, null);
+    };
+    const editMessage = (index, msgContainer) => {
+      const current = data[index].message;
+      msgContainer.innerHTML = `<div>
+                <code class="edit-input" contenteditable="true">${current}</code>
+                <button class="save-btn" data-index="${index}">Save</button>
+                <button class="cancel-btn" data-index="${index}">Cancel</button>`;
+      msgContainer.getElementsByClassName("edit-input")[0].focus();
+    };
+    const refDB = ref(database, "chats/");
+    onValue(refDB, (snapshot) => {
+      data = snapshot.val();
+      console.log(data);
+      if (data === null) {
+        console.log("no chats yet");
+      } else {
+        chatIndex = data.length;
+        let userId = localStorage.getItem("user");
+        let convUser = JSON.parse(userId);
+        mesa.innerHTML = " ";
+        data.map((chat, index) => {
+          // mesa.innerHTML += `<code>${chat.message}</code><br/>`;
 
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          const uid = user.uid;
-          console.log("user is logged in:", user);
+          if (chat.id == convUser.id) {
+            mesa.innerHTML += `
+              <div class="sent-message">
+                <div class="ddd"><span>${chat.name}</span>
+                <div class="msg-bubble sent-bubble">
+                  <span class = "msg-text">${chat.message}</span>
+                </div>
+                </div>
+                <div>
+                  <button class="edit-btn" data-index="${index}">Edit</button>
+                  <button class="delete-btn" data-index="${index}">Delete</button>
+                </div>
+              </div>
+              `;
+          } else {
+            mesa.innerHTML += `
+            <div class="received-msg" style="display: flex; align-items: flex-end; justify-content: flex-start; gap: 6px;">
+              <img class = "msg-avatar" src = "${chat.profilePicture}" style ="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+              <div style="display:flex; flex-direction:column"><span style="display: block; font-size: 11px; margin-bottom: 2px; opacity: 0.6;">${chat.name || chat.email.slice(0, chat.email?.indexOf('@')) || "User"}</span>
 
-          result.innerHTML = `<div>
-                    <img src = "${user.photoURL}" width:100px; height:100px; border-radius:50%; ><br/><br/>
-                    <h3>${user.email}</h3>
-                    <h3>${user.displayName}</h3>
+              <div class="msg-bubble received-bubble" style="border-radius: 18px 18px 18px 4px; background-color: #c7963e; color: black; max-width: 60%; padding: 5px">
+                <span class="msg-text">${chat.message}</span>
+              </div>
+              </div>
+            </div>
+            `;
+          }
+        });
+        mesa.scrollTop = mesa.scrollHeight;
+      }
+    });
 
-                    </div>`;
-        } else {
-          window.location.href = "/login.html";
-        }
-      });
+    document.getElementById("mesa").addEventListener("click", (e) => {
+      // e to target event object
+      const editAction = e.target.dataset.action;
+      const msgContainer = e.target.closest(".sent-message");
+      if (!msgContainer) return;
+      const currentActive = document.querySelector(".sent-message.active");
+      if (currentActive && currentActive !== msgContainer) {
+        currentActive.classList.remove("active");
+      }
+      // activeContainer = msgContainer;
+      msgContainer.classList.toggle("active");
+      // This will delete the message
+      if (e.target.classList.contains("delete-btn")) {
+        const index = e.target.getAttribute("data-index");
+        deleteMessage(index);
+      }
 
-      document.getElementById("sign-out").addEventListener("click", () => {
-        signOut(auth)
-          .then(() => {
-            let person = new User();
-            person.logoutUser();
-            window.location.href = "/login.html";
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-      });
-
-      document.getElementById("send-btn").addEventListener("click", () => {
-        const db = getDatabase();
-
-        const refDB = ref(db, "chats/" + chatIndex);
-
-        let currentUser = localStorage.getItem("user");
-        let convUser = JSON.parse(currentUser);
-
-        let messageObject = {
-          message: sendMsg.value,
-          email: convUser.email,
-          profilePicture: convUser.profilePicture,
-          id: convUser.id,
-        };
-
-        set(refDB, messageObject);
-      });
-
-      const refDB = ref(database, "chats/");
-      onValue(refDB, (snapshot) => {
-        const data = snapshot.val();
-        console.log(data);
-        if (data === null) {
-          console.log("no chats yet");
-        } else {
-          chatIndex = data.length;
-          let userId = localStorage.getItem("user");
-          let convUser = JSON.parse(userId);
-          mesa.innerHTML = "";
-          data.map((chat, index) => {
-            // mesa.innerHTML += `<code>${chat.message}</code><br/>`;
-
-            if (chat.id == convUser.id) {
-              mesa.innerHTML += `<code style="color:blue; display:flex; justify-content:right; align-items: right; border: 1px solid blue; width:100px height: 40px">${chat.message}</code><br/>`;
-            } else {
-              mesa.innerHTML += `<code style="color:red; display:flex; justify-content:left; border: 1px solid red;">${chat.message}</code><br/>`;
-            }
-          });
-        }
-      });
-    </script>
-    
+      if (e.target.classList.contains("edit-btn")) {
+        const index = e.target.getAttribute("data-index");
+        const msgText = e.target.closest(".sent-message").getElementsByClassName("msg-text")[0];
+        editMessage(index, msgContainer);
+      };
+      if (e.target.classList.contains("save-btn")) {
+        const index = e.target.getAttribute("data-index");
+        const newMessage = msgContainer.getElementsByClassName("edit-input")[0].textContent.trim();
+        const refDB = ref(database, "chats/" + index);
+        set(refDB, { ...data[index], message: newMessage });
+      };
+      if (e.target.classList.contains("cancel-btn")) {
+        const index = e.target.getAttribute("data-index");
+        const msgContainer = e.target.closest(".sent-message");
+        msgContainer.innerHTML = `
+    <code class="msg-text">${data[index].message}</code>
+    <button class="edit-btn" data-index="${index}">Edit</button>
+    <button class="delete-btn" data-index="${index}">Delete</button>
+  `;
+      }
+    });
+  </script>
 </body>
+
 </html>
