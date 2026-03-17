@@ -11,4 +11,4 @@
 
 // landing page(something simple ) 
 // have modal say sign in succesful if successful
-// have another say are you sure you want to delete your account if they click delete account 
+// have another say are you sure you want to delete your account if they click delete account

@@ -1,301 +1,628 @@
 <!doctype html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Document</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blink-GC — Chat</title>
+    <!-- Preconnect to Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="style.css" />
 </head>
 
 <body id="blink">
-  <div class="chat-body">
-    <div class="chat-head">
-      <h1 class="title">Chat Room</h1>
-      <span id="online-count">0 online</span>
-      <div class="right">
-        <!-- <div id="profile"> -->
-        <img src="" alt="" id="photourl">
-        <!-- </div> -->
-        <button class="desktop-signout" id="sign-out">Sign Out</button>
-      </div>
-    </div>
-    <hr>
+    
+    <div class="chat-container">
+        <div class="chat-main">
+            <header class="chat-header">
+                <div class="room-info">
+                    <h1 class="room-name" id="current-room-name">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h16"/><path d="M4 15h16"/><path d="M10 3L8 21"/><path d="M16 3l-2 18"/></svg>
+                        Blink-Space
+                    </h1>
+                    <div class="online-badge">
+                        <span class="online-dot"></span>
+                        <span id="online-count">0 online</span>
+                    </div>
+                </div>
 
-    <div class="chat-messages">
-      <div id="mesa"></div>
-      <div id="typing-indicator"></div>
+                <div class="header-actions">
+                    <button class="btn-ghost mobile-signout-btn" id="sign-out-mobile">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    </button>
+                    <button class="btn-ghost desktop-signout" id="sign-out">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        Sign Out
+                    </button>
+                    <a href="admin.html" id="admin-btn" class="btn-outline" style="display: none; padding: 0.4rem 0.8rem; font-size: 0.8rem; border-color: var(--amber-500); color: var(--amber-500);">Admin</a>
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%234a5568' /%3E%3Cstop offset='100%25' style='stop-color:%232d3748' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='24' height='24' fill='url(%23g)' /%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z' fill='rgba(255,255,255,0.4)'/%3E%3C/svg%3E" alt="Profile" id="photourl" class="avatar-btn">
+                </div>
+            </header>
+
+            <!-- Messages Area -->
+            <main class="chat-messages">
+                <div id="mesa">
+                    <!-- Skeleton loader shown initially -->
+                    <div class="skeleton-msg">
+                        <div class="skeleton-avatar"></div>
+                        <div class="skeleton-lines">
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-line"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="typing-indicator"></div>
+            </main>
+
+            <!-- Input Bar -->
+            <footer class="chat-input-bar" id="chat-input-container">
+                <div class="input-reply-preview" id="reply-preview">
+                    <div class="reply-preview-content">
+                        Replying to <strong id="reply-to-name" style="color: var(--amber-300); margin-left: 4px;"></strong><span style="margin: 0 4px;">:</span><span id="reply-to-msg" style="opacity: 0.85;"></span>
+                    </div>
+                    <button class="cancel-reply-btn" id="cancel-reply">✕</button>
+                </div>
+                 id="media-upload" accept="image/*,video/*" style="display: none;" /> -->
+                
+                <input type="text" id="sendMsg" placeholder="Message #General..." autocomplete="off" />
+                 
+                <button id="send-btn" class="send-btn" title="Send message">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </footer>
+        </div>
     </div>
-    <div class="send-section">
-      <input type="text" id="sendMsg" />
-      <button id="send-btn">Send</button>
-    </div>
+
+    <!-- Profile Modal -->
     <div id="profile-modal-overlay">
-      <div id="profile-modal">
-        <button id="modal-close">✕</button>
-        <img src="" alt="" id="modal-photo">
-        <p id="modal-displayname"></p>
-        <p id="modal-email"></p>
-        <input type="text" id="modal-username-input" placeholder="Change display name..." />
-        <button id="save-username-btn">Save Username</button>
-        <hr>
-        <button class="mobile-signout">Sign Out</button>
-        <button id="delete-acc-btn">Delete Account</button>
-      </div>
-    </div>
-  </div>
-  <script type="module">
-    // import user from "./user.js";
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-    import {
-      GoogleAuthProvider,
-      getAuth,
-      onAuthStateChanged,
-      updateProfile,
-      signOut,
-    } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-    import {
-      getDatabase,
-      ref,
-      set,
-      onDisconnect,
-      onValue,
-    } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAS-d_3VUTsW2A7yEIVW0ETqY1um3fPPz0",
-      authDomain: "febfire-700ba.firebaseapp.com",
-      projectId: "febfire-700ba",
-      databaseURL: "https://febfire-700ba-default-rtdb.firebaseio.com",
-      storageBucket: "febfire-700ba.firebasestorage.app",
-      messagingSenderId: "17245351215",
-      appId: "1:17245351215:web:a0107d6dcddb677ce2c5da",
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const provider = new GoogleAuthProvider();
-    const auth = getAuth();
-    const database = getDatabase();
-    let chatIndex = 0;
-    let data = [];
-    let typingTimeout;
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const uid = user.uid;
-        document.getElementById("photourl").src = user.photoURL || "";
-        document.getElementById("modal-photo").src = user.photoURL || "";
-        document.getElementById("modal-displayname").textContent = user.displayName || "No name";
-        document.getElementById("modal-email").textContent = user.email;
-        document.getElementById("modal-username-input").placeholder = user.displayName || "Change display name...";
-
-        console.log("user is logged in:", user);
-        const presenceRef = ref(database, "presence/" + user.uid);
-        onValue(ref(database, ".info/connected"), (snapshot) => {
-          if (snapshot.val() === true) {
-            set(presenceRef, { name: user.displayName || user.email, online: true });
-            onDisconnect(presenceRef).remove();
-          }
-        });
-
-      } else {
-        window.location.href = "/login.html";
-      }
-    });
-    onValue(ref(database, "presence/"), (snapshot) => {
-      const presenceData = snapshot.val();
-      const count = presenceData ? Object.keys(presenceData).length : 0;
-      document.getElementById("online-count").textContent = count + " online";
-    });
-
-    document.getElementById("photourl").addEventListener("click", () => {
-      document.getElementById("profile-modal-overlay").classList.add("open");
-    });
-    document.getElementById("modal-close").addEventListener("click", () => {
-      document.getElementById("profile-modal-overlay").classList.remove("open");
-    });
-    document.getElementById("profile-modal-overlay").addEventListener("click", (e) => {
-      if (e.target.id === "profile-modal-overlay") document.getElementById("profile-modal-overlay").classList.remove("open");
-    });
-    document.getElementById("save-username-btn").addEventListener("click", () => {
-      const newName = document.getElementById("modal-username-input").value.trim();
-      if (!newName) return;
-      updateProfile(auth.currentUser, { displayName: newName }).then(() => {
-        document.getElementById("modal-displayname").textContent = newName;
-        document.getElementById("modal-username-input").placeholder = newName;
-        document.getElementById("modal-username-input").value = "";
-        // alert("Username updated!");
-      }).catch((err) => console.log(err));
-    });
-
-    onValue(ref(database, "typing/"), (snapshot) => {
-      const typingData = snapshot.val();
-      const currentUser = JSON.parse(localStorage.getItem("user"));
-      if (!typingData || !currentUser) { document.getElementById("typing-indicator").textContent = ""; return; }
-      const othersTyping = Object.entries(typingData).filter(([id]) => id != currentUser.id).map(([id, val]) => val.name);
-      if (othersTyping.length === 0) document.getElementById("typing-indicator").textContent = "";
-      else if (othersTyping.length === 1) document.getElementById("typing-indicator").textContent = othersTyping[0] + " is typing...";
-      else document.getElementById("typing-indicator").textContent = "Several people are typing...";
-    });
-
-    document.getElementById("sign-out").addEventListener("click", () => {
-      signOut(auth)
-        .then(() => {
-          localStorage.removeItem("user"); // ✅ replaces new user().logoutUser()
-          window.location.href = "/login.html";
-          //   let person = new user();
-          //   person.logoutUser();
-          //   window.location.href = "/login.html";
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    });
-    document.getElementById("delete-acc-btn").addEventListener("click", () => {
-      const FUser = auth.currentUser;
-      if (!confirm("Are you sure you want to delete your account and all messages?")) return;
-      // wipe their messages from Firebase
-      if (data) {
-        data.forEach((chat, index) => {
-          if (chat && chat.id == FUser.uid) set(ref(database, "chats/" + index), null);
-        });
-      }
-      set(ref(database, "presence/" + FUser.uid), null);
-      localStorage.clear();
-      // let person = new user();
-      // delete Firebase Auth account
-      FUser.delete()
-        .then(() => { window.location.href = "/login.html"; })
-        .catch((error) => {
-          console.log(error);
-        });
-    });
-    document.getElementById("send-btn").addEventListener("click", () => {
-      if (!sendMsg.value.trim()) return;
-      const db = getDatabase();
-      const refDB = ref(db, "chats/" + chatIndex);
-
-      let currentUser = localStorage.getItem("user");
-      let convUser = JSON.parse(currentUser);
-      console.log(convUser);
-      let messageObject = {
-        message: sendMsg.value,
-        email: convUser.email,
-        profilePicture: convUser.profilePicture,
-        id: convUser.id,
-        name: convUser.name,
-      };
-
-      set(refDB, messageObject);
-      sendMsg.value = "";
-    });
-    document.getElementById("sendMsg").addEventListener("input", () => {
-      const currentUser = JSON.parse(localStorage.getItem("user"));
-      const typingRef = ref(database, "typing/" + currentUser.id);
-      set(typingRef, { name: currentUser.displayName || currentUser.email, typing: true });
-      clearTimeout(typingTimeout);
-      typingTimeout = setTimeout(() => { set(typingRef, null); }, 5000);
-    });
-    // this will delete message
-    const deleteMessage = (index) => {
-      const db = getDatabase();
-      const refDB = ref(database, "chats/" + index);
-      set(refDB, null);
-    };
-    const editMessage = (index, msgContainer) => {
-      const current = data[index].message;
-      msgContainer.innerHTML = `<div>
-                <code class="edit-input" contenteditable="true">${current}</code>
-                <button class="save-btn" data-index="${index}">Save</button>
-                <button class="cancel-btn" data-index="${index}">Cancel</button>`;
-      msgContainer.getElementsByClassName("edit-input")[0].focus();
-    };
-    const refDB = ref(database, "chats/");
-    onValue(refDB, (snapshot) => {
-      data = snapshot.val();
-      console.log(data);
-      if (data === null) {
-        console.log("no chats yet");
-      } else {
-        chatIndex = data.length;
-        let userId = localStorage.getItem("user");
-        let convUser = JSON.parse(userId);
-        mesa.innerHTML = " ";
-        data.map((chat, index) => {
-          // mesa.innerHTML += `<code>${chat.message}</code><br/>`;
-
-          if (chat.id == convUser.id) {
-            mesa.innerHTML += `
-              <div class="sent-message">
-                <div class="ddd"><span>${chat.name}</span>
-                <div class="msg-bubble sent-bubble">
-                  <span class = "msg-text">${chat.message}</span>
-                </div>
-                </div>
-                <div>
-                  <button class="edit-btn" data-index="${index}">Edit</button>
-                  <button class="delete-btn" data-index="${index}">Delete</button>
-                </div>
-              </div>
-              `;
-          } else {
-            mesa.innerHTML += `
-            <div class="received-msg" style="display: flex; align-items: flex-end; justify-content: flex-start; gap: 6px;">
-              <img class = "msg-avatar" src = "${chat.profilePicture}" style ="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
-              <div style="display:flex; flex-direction:column"><span style="display: block; font-size: 11px; margin-bottom: 2px; opacity: 0.6;">${chat.name || chat.email.slice(0, chat.email?.indexOf('@')) || "User"}</span>
-
-              <div class="msg-bubble received-bubble" style="border-radius: 18px 18px 18px 4px; background-color: #c7963e; color: black; max-width: 60%; padding: 5px">
-                <span class="msg-text">${chat.message}</span>
-              </div>
-              </div>
+        <div id="profile-modal" class="glass-card">
+            <button id="modal-close" title="Close">✕</button>
+            <div style="text-align: center; position: relative; width: fit-content; margin: 0 auto;">
+                <img src="" alt="Profile Photo" id="modal-photo">
+                <button id="change-avatar-btn" class="btn-ghost" style="position: absolute; bottom: 0; right: 0; padding: 4px; border-radius: 50%; width: 28px; height: 28px; background: var(--amber-500); color: var(--bg-deep); border: 2px solid var(--bg-raised);" title="Change Avatar">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                </button>
             </div>
-            `;
-          }
+            <input type="file" id="avatar-upload" accept="image/*" style="display: none;" />
+            
+            <div style="text-align: center;">
+                <p id="modal-displayname"></p>
+                <p id="modal-email"></p>
+            </div>
+            
+            <hr style="width: 100%;">
+            
+            <input type="text" id="modal-username-input" placeholder="Change display name..." autocomplete="off" />
+            <button id="save-username-btn" class="btn-outline" style="width: 100%;">Update Name</button>
+            
+            <div class="modal-actions">
+                <button id="delete-acc-btn" class="btn-danger" style="margin-top: 8px;">Delete Account</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+        import {
+            getAuth,
+            onAuthStateChanged,
+            updateProfile,
+            signOut,
+        } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+        import {
+            getDatabase,
+            ref,
+            set,
+            onDisconnect,
+            onValue,
+        } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAS-d_3VUTsW2A7yEIVW0ETqY1um3fPPz0",
+            authDomain: "febfire-700ba.firebaseapp.com",
+            projectId: "febfire-700ba",
+            databaseURL: "https://febfire-700ba-default-rtdb.firebaseio.com",
+            storageBucket: "febfire-700ba.firebasestorage.app",
+            messagingSenderId: "17245351215",
+            appId: "1:17245351215:web:a0107d6dcddb677ce2c5da",
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth();
+        const database = getDatabase();
+        
+        let chatData = [];
+        let typingTimeout;
+        let authUser = null;
+        let cachedLocalUser = null;
+        let currentChannel = "general";
+        let replyingTo = null; // { id, name, message }
+        let userRole = "user";
+        let allUsers = {}; // uid -> info
+        let featureFlags = {
+            reactions: true,
+            replies: true,
+        };
+
+        const defaultAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%234a5568' /%3E%3Cstop offset='100%25' style='stop-color:%232d3748' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='24' height='24' fill='url(%23g)' /%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z' fill='rgba(255,255,255,0.4)'/%3E%3C/svg%3E";
+
+        const toastEl = document.getElementById("toast");
+        const mesa = document.getElementById("mesa");
+        const sendInput = document.getElementById("sendMsg");
+        const sendBtn = document.getElementById("send-btn");
+        const modalOverlay = document.getElementById("profile-modal-overlay");
+        // const attachBtn = document.getElementById("attach-btn"); 
+        const replyPreview = document.getElementById("reply-preview");
+        const cancelReplyBtn = document.getElementById("cancel-reply");
+        const replyToName = document.getElementById("reply-to-name");
+        const replyToMsg = document.getElementById("reply-to-msg");
+        const inputContainer = document.getElementById("chat-input-container");
+        const avatarUpload = document.getElementById("avatar-upload");
+        const changeAvatarBtn = document.getElementById("change-avatar-btn");
+        const saveUsernameBtn = document.getElementById("save-username-btn");
+        const modalUsernameInput = document.getElementById("modal-username-input");
+        
+        // Utils
+        const escapeHTML = (str) => {
+            if (!str) return "";
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag] || tag));
+        };
+
+        const formatTime = (ts) => {
+            if (!ts) return "";
+            const d = new Date(ts);
+            // simple short time like "10:42 AM"
+            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        };
+
+        const showToast = (message, type = "success") => {
+            toastEl.textContent = message;
+            toastEl.className = `toast show toast-${type}`;
+            setTimeout(() => toastEl.classList.remove("show"), 3000);
+        };
+
+        // Sound effect (base64 simple pop)
+        const playPop = () => {
+            try {
+                const audio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
+                audio.play().catch(()=>{});
+            } catch(e) {}
+        };
+
+        // Auth
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                authUser = user;
+                const localStr = localStorage.getItem("user");
+                if (localStr) cachedLocalUser = JSON.parse(localStr);
+                else {
+                    cachedLocalUser = { id: user.uid, email: user.email, name: user.displayName, profilePicture: user.photoURL };
+                    localStorage.setItem("user", JSON.stringify(cachedLocalUser));
+                }
+
+                // Update UI Profile
+                const pic = user.photoURL || defaultAvatar;
+                const dName = user.displayName || user.email.split('@')[0];
+                document.getElementById("photourl").src = pic;
+                document.getElementById("modal-photo").src = pic;
+                document.getElementById("modal-displayname").textContent = dName;
+                document.getElementById("modal-email").textContent = user.email;
+                document.getElementById("modal-username-input").placeholder = dName;
+
+                // Presence & Role sync
+                const presenceRef = ref(database, "presence/" + user.uid);
+                const userMetadataRef = ref(database, "users/" + user.uid);
+                
+                onValue(userMetadataRef, (snap) => {
+                    const data = snap.val();
+                    if (data && data.role === "admin") {
+                        userRole = "admin";
+                        document.getElementById("admin-btn").style.display = "block";
+                    }
+                });
+
+                onValue(ref(database, ".info/connected"), (snapshot) => {
+                    if (snapshot.val() === true) {
+                        set(presenceRef, { name: dName, online: true });
+                        onDisconnect(presenceRef).remove();
+                    }
+                });
+            } else {
+                window.location.href = "/login.html";
+            }
         });
-        mesa.scrollTop = mesa.scrollHeight;
-      }
-    });
 
-    document.getElementById("mesa").addEventListener("click", (e) => {
-      // e to target event object
-      const editAction = e.target.dataset.action;
-      const msgContainer = e.target.closest(".sent-message");
-      if (!msgContainer) return;
-      const currentActive = document.querySelector(".sent-message.active");
-      if (currentActive && currentActive !== msgContainer) {
-        currentActive.classList.remove("active");
-      }
-      // activeContainer = msgContainer;
-      msgContainer.classList.toggle("active");
-      // This will delete the message
-      if (e.target.classList.contains("delete-btn")) {
-        const index = e.target.getAttribute("data-index");
-        deleteMessage(index);
-      }
+        // Online Count & Global User Tracking
+        onValue(ref(database, "presence/"), (snapshot) => {
+            const data = snapshot.val();
+            const count = data ? Object.keys(data).length : 0;
+            document.getElementById("online-count").textContent = `${count} online`;
+            
+            if (data) {
+                Object.entries(data).forEach(([uid, info]) => {
+                    if (!allUsers[uid]) allUsers[uid] = info;
+                });
+            }
+        });
 
-      if (e.target.classList.contains("edit-btn")) {
-        const index = e.target.getAttribute("data-index");
-        const msgText = e.target.closest(".sent-message").getElementsByClassName("msg-text")[0];
-        editMessage(index, msgContainer);
-      };
-      if (e.target.classList.contains("save-btn")) {
-        const index = e.target.getAttribute("data-index");
-        const newMessage = msgContainer.getElementsByClassName("edit-input")[0].textContent.trim();
-        const refDB = ref(database, "chats/" + index);
-        set(refDB, { ...data[index], message: newMessage });
-      };
-      if (e.target.classList.contains("cancel-btn")) {
-        const index = e.target.getAttribute("data-index");
-        const msgContainer = e.target.closest(".sent-message");
-        msgContainer.innerHTML = `
-    <code class="msg-text">${data[index].message}</code>
-    <button class="edit-btn" data-index="${index}">Edit</button>
-    <button class="delete-btn" data-index="${index}">Delete</button>
-  `;
-      }
-    });
-  </script>
+        // Track all users (historical)
+        onValue(ref(database, "users/"), (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                allUsers = { ...allUsers, ...data };
+            }
+        });
+
+        // Typing Indicator
+        onValue(ref(database, "typing/"), (snapshot) => {
+            const typingData = snapshot.val();
+            const ind = document.getElementById("typing-indicator");
+            if (!typingData || !cachedLocalUser) { ind.innerHTML = ""; return; }
+            
+            const others = Object.entries(typingData).filter(([id]) => id != cachedLocalUser.id);
+            if (others.length === 0) {
+                ind.innerHTML = "";
+            } else if (others.length === 1) {
+                const name = escapeHTML(others[0][1].name);
+                ind.innerHTML = `<span style="font-weight:600; color:var(--amber-300);">${name}</span> is typing<div class="typing-dots"><span></span><span></span><span></span></div>`;
+            } else {
+                ind.innerHTML = `Several people are typing<div class="typing-dots"><span></span><span></span><span></span></div>`;
+            }
+        });
+
+        sendInput.addEventListener("input", (e) => {
+            if (!cachedLocalUser) return;
+            const refT = ref(database, "typing/" + cachedLocalUser.id);
+            set(refT, { name: cachedLocalUser.name || cachedLocalUser.email.split('@')[0], typing: true });
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => set(refT, null), 3000);
+        });
+
+        // Message Handling
+        const renderMessages = () => {
+            if (!cachedLocalUser) return;
+            mesa.innerHTML = "";
+            if (!chatData || chatData.length === 0) {
+                mesa.innerHTML = `<div style="text-align:center; color:var(--gray-500); padding: 2rem;">No messages yet. Be the first to say hi! 👋</div>`;
+                return;
+            }
+
+            let lastSender = null;
+            let lastTime = 0;
+
+            chatData.forEach((chat, index) => {
+                if (!chat) return; // handle deleted (null) indexes
+                
+                const isMe = chat.id === cachedLocalUser.id;
+                let safeMsg = escapeHTML(chat.message);
+
+                const safeName = escapeHTML(chat.name || chat.email?.split('@')[0] || "User");
+                const userMetadata = allUsers[chat.id] || {};
+                const safeAvatar = escapeHTML(userMetadata.profilePicture || chat.profilePicture || defaultAvatar);
+                const timeStr = formatTime(chat.timestamp);
+
+                // Grouping logic (same sender, within 5 mins, no reply context)
+                const isGrouped = !chat.replyTo && lastSender === chat.id && (chat.timestamp - lastTime < 300000);
+                lastSender = chat.id;
+                lastTime = chat.timestamp || 0;
+
+                const wrapper = document.createElement("div");
+                wrapper.className = `msg-row ${isMe ? 'sent' : 'received'}`;
+                
+                let avatarHTML = isMe ? "" : `<img class="msg-avatar" src="${safeAvatar}" onerror="this.onerror=null; this.src='${defaultAvatar}';" style="${isGrouped ? 'opacity:0;' : ''}" alt="">`;
+                let headerHTML = isMe || isGrouped ? "" : `<div class="msg-sender">${safeName}</div>`;
+                
+                let replyContextHTML = "";
+                if (chat.replyTo) {
+                    replyContextHTML = `<div class="reply-context"><span class="reply-context-name">${escapeHTML(chat.replyTo.name)}</span> <span class="reply-context-text">${escapeHTML(chat.replyTo.message)}</span></div>`;
+                }
+
+                let reactionsHTML = "";
+                if (chat.reactions) {
+                    const reactionCount = Object.keys(chat.reactions).length;
+                    const reactedByMe = chat.reactions[cachedLocalUser.id] ? 'reacted' : '';
+                    if (reactionCount > 0) {
+                        reactionsHTML = `
+                            <div class="msg-reactions">
+                                <div class="reaction-chip react-msg-btn ${reactedByMe}" data-idx="${index}">
+                                    👍 <span class="reaction-count">${reactionCount}</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+
+                let actionHTML = `
+                    <div class="msg-actions">
+                        ${featureFlags.reactions ? `
+                        <button class="msg-action-btn react-msg-btn" title="React 👍" data-idx="${index}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+                        </button>` : ''}
+                        ${featureFlags.replies ? `
+                        <button class="msg-action-btn reply-msg-btn" title="Reply" data-idx="${index}" data-name="${safeName}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
+                        </button>` : ''}
+                        ${isMe ? `
+                        <button class="msg-action-btn edit-msg-btn" title="Edit" data-idx="${index}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                        </button>
+                        <button class="msg-action-btn danger delete-msg-btn" title="Delete" data-idx="${index}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                        ` : ''}
+                    </div>
+                `;
+
+                wrapper.innerHTML = `
+                    ${avatarHTML}
+                    <div class="msg-content" style="width: 100%;">
+                        ${headerHTML}
+                        ${replyContextHTML}
+                        <div style="display:flex; align-items:flex-end; gap:6px; flex-direction:${isMe ? 'row-reverse' : 'row'}">
+                            <div style="display:flex; flex-direction:column; align-items:${isMe ? 'flex-end' : 'flex-start'}">
+                                ${safeMsg ? `<div class="msg-bubble">${safeMsg}</div>` : ''}
+                            
+
+                                ${reactionsHTML}
+                            </div>
+                            ${actionHTML}
+                        </div>
+                        <div class="msg-timestamp">${timeStr}</div>
+                    </div>
+                `;
+                mesa.appendChild(wrapper);
+            });
+            mesa.scrollTop = mesa.scrollHeight;
+        };
+
+        // Channel Switching Logic
+        const loadChannel = (channelId, channelName) => {
+            currentChannel = channelId;
+            document.getElementById("current-room-name").innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h16"/><path d="M4 15h16"/><path d="M10 3L8 21"/><path d="M16 3l-2 18"/></svg>
+                ${channelName}
+            `;
+            sendInput.placeholder = `Message #${channelName}...`;
+            
+            // Show loading skeleton
+            mesa.innerHTML = `
+                <div class="skeleton-msg">
+                    <div class="skeleton-avatar"></div>
+                    <div class="skeleton-lines">
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line"></div>
+                    </div>
+                </div>
+            `;
+            
+            
+            const dbPath = (channelId === "general") ? "chats/" : `channels/${channelId}/messages/`;
+            
+            let firstLoad = true;
+            onValue(ref(database, dbPath), (snapshot) => {
+                const val = snapshot.val();
+                // Handle both Array (old) and Object (new push ID standard) formats
+                if (Array.isArray(val)) {
+                    chatData = val;
+                } else if (val && typeof val === 'object') {
+                    // Convert object of push keys to array
+                    chatData = Object.entries(val).map(([k, v]) => ({...v, _key: k}));
+                } else {
+                    chatData = [];
+                }
+                
+                renderMessages();
+                if (!firstLoad) playPop();
+                firstLoad = false;
+            });
+        };
+
+        
+        loadChannel("general", "General");
+
+        // Send Message
+        const sendMessage = () => {
+            const val = sendInput.value.trim();
+            if (!val && !uploadingMediaBase64) return;
+            if (!cachedLocalUser) return;
+            
+            // Routing dispatch block
+            const dbPath = (currentChannel === "general") ? "chats/" + chatData.length : `channels/${currentChannel}/messages/${Date.now()}`;
+            const refDB = ref(database, dbPath);
+            
+            const payload = {
+                message: val,
+                email: cachedLocalUser.email,
+                profilePicture: cachedLocalUser.profilePicture || defaultAvatar,
+                id: cachedLocalUser.id,
+                name: cachedLocalUser.name || cachedLocalUser.displayName,
+                timestamp: Date.now()
+            };
+            
+            if (replyingTo) payload.replyTo = replyingTo;
+            // if (uploadingMediaBase64) payload.mediaUrl = uploadingMediaBase64;
+            
+            set(refDB, payload);
+
+            sendInput.value = "";
+            clearReply();
+            clearMediaUpload();
+            set(ref(database, "typing/" + cachedLocalUser.id), null);
+        };
+
+        const clearReply = () => {
+            replyingTo = null;
+            replyPreview.classList.remove("active");
+        };
+        
+        sendBtn.addEventListener("click", sendMessage);
+        sendInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") { e.preventDefault(); sendMessage(); }
+        });
+
+        // Event Delegation for Edit, Delete, Reply, React
+        mesa.addEventListener("click", (e) => {
+            const delBtn = e.target.closest(".delete-msg-btn");
+            if (delBtn) {
+                if(confirm("Delete this message?")) {
+                    const idx = delBtn.dataset.idx;
+                    const pathKey = chatData[idx]._key || idx;
+                    const dbPath = (currentChannel === "general") ? "chats/" + pathKey : `channels/${currentChannel}/messages/${pathKey}`;
+                    set(ref(database, dbPath), null);
+                }
+                return;
+            }
+
+            const replyBtn = e.target.closest(".reply-msg-btn");
+            if (replyBtn) {
+                const idx = replyBtn.dataset.idx;
+                const chat = chatData[idx];
+                const msgThumb = chat.message ? chat.message.substring(0, 40) + (chat.message.length > 40 ? '...' : '') : 'Attachment';
+                replyingTo = {
+                    id: chat.id,
+                    name: chat.name || chat.email.split('@')[0],
+                    message: msgThumb
+                };
+                replyToName.textContent = replyingTo.name;
+                replyToMsg.textContent = replyingTo.message;
+                replyPreview.classList.add("active");
+                sendInput.focus();
+                return;
+            }
+
+            const reactBtn = e.target.closest(".react-msg-btn");
+            if (reactBtn) {
+                const idx = reactBtn.dataset.idx;
+                const chat = chatData[idx];
+                if (!chat) return;
+                const pathKey = chat._key || idx;
+                const dbPath = (currentChannel === "general") ? `chats/${pathKey}/reactions/${cachedLocalUser.id}` : `channels/${currentChannel}/messages/${pathKey}/reactions/${cachedLocalUser.id}`;
+                
+                if (chat.reactions && chat.reactions[cachedLocalUser.id]) {
+                    set(ref(database, dbPath), null);
+                } else {
+                    set(ref(database, dbPath), "👍");
+                }
+                return;
+            }
+
+            const editBtn = e.target.closest(".edit-msg-btn");
+            if (editBtn) {
+                const idx = editBtn.dataset.idx;
+                const bubble = editBtn.closest(".msg-content").querySelector(".msg-bubble");
+                const current = chatData[idx].message;
+                
+                bubble.innerHTML = `
+                    <div class="edit-actions" style="flex-direction:column; width:200px;">
+                        <input type="text" class="edit-input" value="${escapeHTML(current)}" />
+                        <div style="display:flex; gap:4px; justify-content:flex-end;">
+                            <button class="btn-ghost cancel-edit">Cancel</button>
+                            <button class="btn-outline save-edit" data-idx="${idx}" style="padding: 0.2rem 0.6rem; font-size: 0.75rem;">Save</button>
+                        </div>
+                    </div>
+                `;
+                bubble.querySelector(".edit-input").focus();
+            }
+
+            if(e.target.classList.contains("cancel-edit")) {
+                renderMessages();
+            }
+
+            if(e.target.classList.contains("save-edit")) {
+                const idx = e.target.dataset.idx;
+                const newMsg = e.target.closest(".edit-actions").querySelector(".edit-input").value.trim();
+                if(newMsg) {
+                    const pathKey = chatData[idx]._key || idx;
+                    const dbPath = (currentChannel === "general") ? "chats/" + pathKey : `channels/${currentChannel}/messages/${pathKey}`;
+                    set(ref(database, dbPath), { ...chatData[idx], message: newMsg });
+                }
+            }
+        });
+
+        // Modals & Auth Actions
+        const avatarBtn = document.getElementById("photourl");
+        avatarBtn.addEventListener("click", () => modalOverlay.classList.add("open"));
+        document.getElementById("modal-close").addEventListener("click", () => modalOverlay.classList.remove("open"));
+        modalOverlay.addEventListener("click", (e) => { if(e.target === modalOverlay) modalOverlay.classList.remove("open"); });
+
+        // Avatar Upload logic
+        changeAvatarBtn.addEventListener("click", () => avatarUpload.click());
+        avatarUpload.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 1024 * 1024) { 
+                showToast("Avatar too large (max 1MB).", "error");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const base64 = event.target.result;
+                try {
+                    await updateProfile(auth.currentUser, { photoURL: base64 });
+                    cachedLocalUser.profilePicture = base64;
+                    localStorage.setItem("user", JSON.stringify(cachedLocalUser));
+                    document.getElementById("photourl").src = base64;
+                    document.getElementById("modal-photo").src = base64;
+                    showToast("Avatar updated!");
+                } catch (e) {
+                    showToast("Failed to update avatar.", "error");
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+
+        const logoutCmd = async () => {
+            if(authUser) set(ref(database, "presence/" + authUser.uid), null);
+            localStorage.removeItem("user");
+            await signOut(auth);
+            window.location.href = "/login.html";
+        };
+        document.getElementById("sign-out").addEventListener("click", logoutCmd);
+        document.getElementById("sign-out-mobile").addEventListener("click", logoutCmd);
+
+        document.getElementById("save-username-btn").addEventListener("click", async () => {
+            const newName = document.getElementById("modal-username-input").value.trim();
+            if(!newName || !authUser) return;
+            try {
+                await updateProfile(authUser, { displayName: newName });
+                document.getElementById("modal-displayname").textContent = newName;
+                document.getElementById("modal-username-input").placeholder = newName;
+                document.getElementById("modal-username-input").value = "";
+                
+                cachedLocalUser.name = newName;
+                cachedLocalUser.displayName = newName;
+                localStorage.setItem("user", JSON.stringify(cachedLocalUser));
+                
+                showToast("Name updated successfully!");
+            } catch(e) {
+                showToast("Failed to update name.", "error");
+            }
+        });
+
+        document.getElementById("delete-acc-btn").addEventListener("click", async () => {
+            if (!authUser) return;
+            if (!confirm("Are you SURE you want to delete your account? This will log you out but NOT erase your old messages from the public chat due to architecture limits.")) return;
+            
+            try {
+                set(ref(database, "presence/" + authUser.uid), null);
+                localStorage.clear();
+                await authUser.delete();
+                window.location.href = "/login.html";
+            } catch (e) {
+                console.log(e);
+                showToast("Error deleting account. You may need to sign in again first.", "error");
+            }
+        });
+    </script>
 </body>
-
 </html>
